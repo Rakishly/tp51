@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>upload模块快速使用</title>
+    <link rel="stylesheet" href="/static/layui/css/layui.css" media="all">
+    <style type="text/css">
+        .uploader-list {
+            margin-left: -15px;
+        }
+
+        .uploader-list .info {
+            position: relative;
+            margin-top: -25px;
+            background-color: black;
+            color: white;
+            filter: alpha(Opacity=80);
+            -moz-opacity: 0.5;
+            opacity: 0.5;
+            width: 100px;
+            height: 25px;
+            text-align: center;
+            display: none;
+        }
+
+        .uploader-list .handle {
+            position: relative;
+            background-color: black;
+            color: white;
+            filter: alpha(Opacity=80);
+            -moz-opacity: 0.5;
+            opacity: 0.5;
+            width: 100px;
+            text-align: right;
+            height: 18px;
+            margin-bottom: -18px;
+            display: none;
+        }
+
+        .uploader-list .handle i {
+            margin-right: 5px;
+        }
+
+        .uploader-list .handle i:hover {
+            cursor: pointer;
+        }
+
+        .uploader-list .file-iteme {
+            margin: 12px 0 0 15px;
+            padding: 1px;
+            float: left;
+        }
+    </style>
+</head>
+<body>
+
+
+
+<form action="http://tp51.test/index.php?s=index/index/edit" enctype="multipart/form-data" method="post">
+    <div class="layui-upload">
+        <button type="button" class="layui-btn" id="test2">多图片上传</button>
+        <blockquote class="layui-elem-quote layui-quote-nm" style="margin-top: 10px;width: 88%">
+            预览图：
+            <div class="layui-upload-list uploader-list" style="overflow: auto;" id="uploader-list">
+                {if !empty($img)}
+                    {volist name="img" id="vo"}
+                        <div class="file-iteme">
+                        <div class="handle" data-imgname="{$vo}"><i class="layui-icon layui-icon-delete"></i></div>
+                        <img style="width: 100px;height: 100px;" src="{$vo}">
+                        <input type="hidden" name="img[]" value="{$vo}">
+                        <div class="info"></div>
+                        </div>
+                    {/volist}
+                {/if}
+            </div>
+        </blockquote>
+    </div>
+
+    <input type="submit" value="保存">
+</form>
+
+<script src="/static/layui/layui.js"></script>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script>
+
+        /*
+        layui.use('upload', function () {
+            var upload = layui.upload;
+            //多图片上传
+            upload.render({
+                elem: '#test2',
+                url: ' http://tp51.test/index.php?s=index/index/upload',
+                multiple: true,
+                before: function (obj) {
+                    //预读本地文件示例，不支持ie8
+                    obj.preview(function (index, file, result) {
+
+                        $('#uploader-list').append('<img src="' + result + '" alt="' + file.name +
+                           '" class="layui-upload-img">')
+                    });
+                },
+                done: function (res) {
+                    //如果上传失败
+                    if (res.code == 404) {
+                        return layer.msg(res.msg);
+                    }
+                    //上传成功
+                    if (res.code == 1) {
+                        $('#demo2').append('<img src="' + res.photo + '" alt="" class="layui-upload-img">')
+                        return layer.msg(res.photo);
+                    }
+                }
+            });
+        });
+*/
+
+        layui.use('upload', function () {
+            var upload = layui.upload;
+            //多图片上传
+            upload.render({
+                elem: '#test2'
+                , url: 'http://tp51.test/index.php?s=index/index/upload'
+                , multiple: true
+                , before: function (obj) {
+                    layer.msg('图片上传中...', {
+                        icon: 16,
+                        shade: 0.01,
+                        time: 0
+                    })
+                }
+                , done: function (res) {
+                    layer.close(layer.msg());//关闭上传提示窗口
+                    //上传完毕
+
+                    //如果上传失败
+                    if (res.code == 404) {
+                        return layer.msg(res.msg);
+                    }
+                    //上传成功
+                    if (res.code == 1) {
+                        $('#uploader-list').append(
+                            '<div id="" class="file-iteme">' +
+                            '<div class="handle"><i class="layui-icon layui-icon-delete"></i></div>' +
+                            '<img style="width: 100px;height: 100px;" src=' + res.photo + '>' +
+                            '<input type="hidden" name="img[]" value="'+res.photo +'">'+
+                            '<div class="info"></div>' +
+                            '</div>'
+                        );
+                    }
+                }
+            });
+
+        });
+        $(document).on("mouseenter mouseleave", ".file-iteme", function(event){
+            if(event.type === "mouseenter"){
+                //鼠标悬浮
+                $(this).children(".info").fadeIn("fast");
+                $(this).children(".handle").fadeIn("fast");
+            }else if(event.type === "mouseleave") {
+                //鼠标离开
+                $(this).children(".info").hide();
+                $(this).children(".handle").hide();
+            }
+        });
+        // 删除图片
+        $(document).on("click", ".file-iteme .handle", function(event){
+            $.ajax({
+                url: 'http://tp51.test/index.php?s=index/index/del',
+                dataType:'json',
+                data : {'imgName' : $(this).data('imgname')},
+                type: 'post',
+                success : function (res) {
+                    return layer.msg(res.msg);
+                }
+            });
+            $(this).parent().remove();
+        });
+
+</script>
+</body>
+</html>
